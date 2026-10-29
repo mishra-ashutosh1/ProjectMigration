@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Project Migration Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef0ec;--card:#fbfbf8;--tx:#14181d;--mu:#5a6370;--bd:#d6d9d2;--bd2:#c3c7be;--ac:#1d4ed8;--ac2:#dbe4fb;--ink:#101418;--ink2:#1a2027;--sig:#ff6a1a;--g:#157a45;--a:#e0a100;--r:#c42b2d;--n:#6b7380;--sh:0 1px 0 rgba(20,24,29,.04),0 1px 2px rgba(20,24,29,.06);--sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1014;--card:#151a20;--tx:#e6e9ee;--mu:#97a1ae;--bd:#252c35;--bd2:#323b46;--ac:#7aa2ff;--ac2:#1c2740;--ink:#07090c;--ink2:#11161c;--g:#2fb36d;--a:#f0b923;--r:#ff6163;--n:#7d8794;--sh:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1014;--card:#151a20;--tx:#e6e9ee;--mu:#97a1ae;--bd:#252c35;--bd2:#323b46;--ac:#7aa2ff;--ac2:#1c2740;--ink:#07090c;--ink2:#11161c;--g:#2fb36d;--a:#f0b923;--r:#ff6163;--n:#7d8794;--sh:none;color-scheme:dark}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 60px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;background-image:radial-gradient(var(--bd) 1px,transparent 1px);background-size:22px 22px;background-attachment:fixed}
+::selection{background:var(--sig);color:#fff}
+:focus-visible{outline:2px solid var(--sig);outline-offset:2px}
+
+/* Header: dark control-room band */
+header{position:relative;background:var(--ink);color:#f1f3f5;padding:34px max(18px,calc((100% - 1150px)/2 + 18px)) 26px;overflow:hidden;border-bottom:3px solid var(--sig)}
+header::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(100deg,transparent 15%,#000 75%);-webkit-mask-image:linear-gradient(100deg,transparent 15%,#000 75%);pointer-events:none}
+header::after{content:"";position:absolute;right:max(18px,calc((100% - 1150px)/2 + 18px));top:38px;width:10px;height:10px;border-radius:50%;background:#2fb36d;box-shadow:0 0 0 4px rgba(47,179,109,.18);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 9px rgba(47,179,109,0)}}
+h1{position:relative;margin:0;font:700 clamp(26px,4.6vw,44px)/1.05 var(--cond);letter-spacing:-.01em;text-transform:uppercase;max-width:22ch}
+.sub{position:relative;color:#a9b2be;margin:10px 0 0;font:500 13px/1.5 var(--mono);letter-spacing:.02em;max-width:70ch}
+
+/* Tabs */
+nav{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:5;border-bottom:1px solid var(--bd2)}
+nav div{max-width:1150px;margin:auto;display:flex;gap:2px;overflow-x:auto;padding:0 18px;counter-reset:t;scrollbar-width:none}
+nav div::-webkit-scrollbar{display:none}
+nav button{counter-increment:t;position:relative;white-space:nowrap;border:0;background:none;color:var(--mu);padding:14px 12px 12px;cursor:pointer;font:500 14px var(--sans);transition:color .15s}
+nav button::before{content:counter(t,decimal-leading-zero);font:500 11px var(--mono);margin-right:7px;opacity:.6}
+nav button::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;background:var(--tx);transform:scaleX(0);transition:transform .2s ease}
+nav button:hover{color:var(--tx)}
+nav button.on{color:var(--tx);font-weight:600}
+nav button.on::before{opacity:1;color:var(--sig)}
+nav button.on::after{transform:scaleX(1)}
+
+main{max-width:1150px;margin:auto;padding:22px 18px 48px}
+section{display:none}section.on{display:block;animation:in .28s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+
+/* Cards & grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:4px;padding:16px;box-shadow:var(--sh)}
+.card h3{margin:0 0 6px;font:600 16px/1.3 var(--cond);letter-spacing:.01em}
+.big{font:600 34px/1.1 var(--mono);letter-spacing:-.03em;margin-top:4px;font-variant-numeric:tabular-nums}
+.mu{color:var(--mu);font-size:13px}
+.card>.mu:first-child{font:500 11px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.08em}
+main>section>.mu:first-child{border-left:3px solid var(--sig);padding:2px 0 2px 10px;margin-bottom:12px}
+section>.grid:first-child>.card{border-top:3px solid var(--tx)}
+h2{margin:30px 0 12px;font:700 13px/1 var(--mono);text-transform:uppercase;letter-spacing:.12em;display:flex;align-items:center;gap:12px}
+h2::after{content:"";flex:1;height:1px;background:var(--bd2)}
+section>h2:first-child{margin-top:4px}
+ul{margin:6px 0;padding-left:20px}li{margin:3px 0}li::marker{color:var(--sig)}
+
+/* Status pills (AA contrast) */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 7px;border-radius:3px;font:600 11px/1.6 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:#fff;vertical-align:middle}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.75}
+.G{background:var(--g)}.A{background:var(--a);color:#1d1600}.R{background:var(--r)}.N{background:var(--n)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.G,:root:not([data-theme="light"]) .pill.R{color:#0b0e11}}
+:root[data-theme="dark"] .pill.G,:root[data-theme="dark"] .pill.R{color:#0b0e11}
+
+.bar{height:10px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--ac) 0 8px,color-mix(in srgb,var(--ac) 80%,#fff) 8px 16px);width:0;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+
+/* Phase roadmap */
+.ph{cursor:pointer;position:relative;padding-left:20px;transition:border-color .15s,transform .15s}
+.ph::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bd2);border-radius:4px 0 0 4px;transition:background .15s}
+.ph:hover{border-color:var(--bd2)}.ph:hover::before,.ph.open::before{background:var(--ac)}
+.ph h3{padding-right:28px}
+.ph h3::after{content:"";position:absolute;right:18px;top:20px;width:8px;height:8px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:rotate(45deg);transition:transform .2s}
+.ph.open h3::after{transform:rotate(-135deg);top:24px}
+.ph .body{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--bd2)}.ph.open .body{display:block;animation:in .2s ease both}
+
+/* Timeline */
+.tl{display:flex;gap:3px;margin:10px 0 6px}
+.tl div{height:38px;background:var(--ac);border-radius:2px;color:#fff;font:600 12px var(--mono);display:flex;align-items:center;justify-content:flex-start;padding-left:8px;min-width:8px;transition:filter .15s}
+.tl div:nth-child(2){background:color-mix(in srgb,var(--ac) 90%,var(--tx))}.tl div:nth-child(3){background:color-mix(in srgb,var(--ac) 80%,var(--tx))}.tl div:nth-child(4){background:color-mix(in srgb,var(--ac) 70%,var(--tx))}.tl div:nth-child(5){background:color-mix(in srgb,var(--ac) 60%,var(--tx))}.tl div:nth-child(6){background:color-mix(in srgb,var(--ac) 50%,var(--tx))}.tl div:nth-child(7){background:var(--sig)}
+.tl div:hover{filter:brightness(1.12)}
+
+/* Forms */
+label{display:block;font-size:12px;color:var(--mu);margin-top:8px}
+input,select{font:500 14px var(--mono);color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:3px;padding:6px 8px;width:100%;margin-top:3px;transition:border-color .15s,background .15s}
+input:hover,select:hover{border-color:var(--bd2)}
+input:focus,select:focus{outline:none;border-color:var(--ac);background:var(--card);box-shadow:0 0 0 3px var(--ac2)}
+.res{margin-top:12px;padding:10px 12px;border-radius:3px;background:var(--ink);color:#f1f3f5;font:600 15px var(--mono);border-left:3px solid var(--sig);font-variant-numeric:tabular-nums}
+.f{font:12px/1.5 var(--mono);color:var(--mu);background:var(--bg);border:1px dashed var(--bd2);border-radius:3px;padding:6px 8px;margin:4px 0 2px}
+
+/* Tables */
+.wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:4px;background:var(--card);box-shadow:var(--sh)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--bd);padding:8px 10px;text-align:left;vertical-align:middle}
+th{background:var(--ink2);color:#e6e9ee;font:600 11px/1.3 var(--mono);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+tr:nth-child(odd) td{background:color-mix(in srgb,var(--bg) 45%,var(--card))}
+tr:hover td{background:var(--ac2)}
+td input,td select{min-width:90px;margin:0;background:transparent;border-color:transparent}
+td input:hover,td select:hover{border-color:var(--bd2)}
+td:has(input[type=number]) input{text-align:right}
+.rc{text-align:center;cursor:pointer;user-select:none;font:600 13px var(--mono);transition:background .12s}
+.rc:hover{background:var(--ac)!important;color:#fff}
+
+button.b{background:var(--tx);color:var(--bg);border:0;border-radius:3px;padding:9px 16px;cursor:pointer;font:600 13px var(--mono);letter-spacing:.03em;margin:12px 6px 6px 0;transition:transform .1s,background .15s}
+button.b:hover{background:var(--sig);color:#fff}button.b:active{transform:translateY(1px)}
+
+/* Checklists */
+.chk label{display:flex;gap:10px;color:var(--tx);font-size:14px;margin:2px -6px;padding:5px 6px;border-radius:3px;align-items:flex-start;cursor:pointer;transition:background .12s}
+.chk label:hover{background:var(--bg)}
+.chk input{width:16px;height:16px;margin:3px 0 0;flex:none;accent-color:var(--g);cursor:pointer}
+.chk label:has(input:checked){color:var(--mu);text-decoration:line-through;text-decoration-color:var(--bd2)}
+
+footer{text-align:center;color:var(--mu);font:12px/1.6 var(--mono);padding:24px 18px 32px;border-top:1px solid var(--bd2);max-width:1150px;margin:auto}
+
+@media(max-width:600px){header{padding-top:26px}header::after{top:28px}.big{font-size:28px}nav button{padding:12px 9px 10px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><h1>Project Migration Command Center</h1>
+<p class="sub">Offshoring · Onshoring · Reshoring — a phase-by-phase plan with checks, formulas, KPIs, RAG tracker and RACI</p></header>
+<nav aria-label="Sections"><div id="tabs" role="tablist"></div></nav><main id="m"></main>
+<footer>Built by Ash · designed with Claude (Anthropic). Figures shown are sample targets; replace them with your own baseline.</footer>
+<script>
+const $=s=>document.querySelector(s);
+const PH=[
+["1. Assess & business case","4–6",4,6,"Approved scope and case",["Select project: volume, peaks, AHT, standardization, automation potential, dependencies","Build business case: fully loaded onshore cost vs total offshore cost (labour, tech, transition, dual running, travel, attrition, management overhead)","Net savings, one-time cost, payback; risk-adjusted with 60–80% productivity ramp-up","Regulatory screen: data privacy, cross-border transfer, licensing, labour law"],"Scope and business case approved","Project selection · Business case · Regulatory"],
+["2. Design & blueprint","4–6",4,6,"Target operating model, SOPs, controls",["Document and version-control SOPs, project maps, decision trees, exception handling","Define escalation matrix and control points (SOX / internal controls)","Capture baseline KPIs from current state","Set governance: steering committee, RAID log, change control, go/no-go gates"],"Blueprint, controls and baseline signed off","Project readiness · Governance"],
+["3. Build & hire","6–10",6,10,"Team hired, access and tools ready",["Hire offshore team; design shifts and time-zone overlap","Provision access: VPN/SSO, licences, least privilege, PII masking","Ready tools (Power BI, RPA, ticketing) and map data flows and reports","Retention incentives for key onshore people; HR and notice-period plan"],"Team, access and tools ready","People · Technology"],
+["4. Knowledge transfer & shadowing","8–12",8,12,"KT sign-off, shadowing completed",["Run KT sessions by module with onshore SMEs as owners","Offshore shadows live work","Track KT completion % per module","Update SOPs with learnings"],"100% of critical KT signed off","People · Project readiness"],
+["5. Reverse KT & assisted run","4–6",4,6,"Offshore handles work with onshore backup",["Offshore team explains the project back (reverse KT)","Offshore executes with onshore review","Log errors, rework and gaps; fix SOPs and training"],"Quality at or above target in assisted run","Quality · People"],
+["6. Parallel run","4–8",4,8,"Output and quality variance measured",["Both teams process the same work","Compare output, accuracy, TAT and SLA","Test controls and capture audit evidence"],"Variance under 2%; SLA met 3 consecutive weeks","Quality · Compliance"],
+["7. Go-live & hypercare","4–6",4,6,"Stable SLAs with daily monitoring",["Formal go/no-go against gate criteria","Daily monitoring of SLA, backlog, defect leakage","Live escalation matrix and contact list; weekly steering"],"Accuracy ≥ target, SLAs stable","Service · Quality"],
+["8. Steady state & decommission","Ongoing",0,0,"BAU handover, onshore exit",["Hand over to BAU governance","Decommission onshore capacity per labour obligations","Realize savings; review attrition, cost per transaction, continuous improvement"],"Savings realized, BAU stable","Financial · People"]];
+const GATE=["Parallel-run output variance under 2%","SLA met for 3 consecutive weeks","Accuracy at or above target (e.g. 98%)","100% of critical project KT signed off","Controls tested and evidence captured","Escalation matrix and contact list live"];
+const CK={"Project selection":["Volume, peak patterns and AHT","Rule-based vs judgment-heavy work","Automation potential (automate first)","Dependencies on onshore people, systems, decisions"],
+"Business case":["Fully loaded cost per FTE (salary, benefits, facilities, tech, overheads)","Total offshore cost incl. transition, dual running, travel, attrition, management","Net savings, one-time cost, payback","Risk-adjusted ramp-up at 60–80% productivity"],
+"Regulatory & compliance":["Data privacy and cross-border rules (GDPR, US state, RBI/IRDAI, client clauses)","Data residency and access controls, PII masking","Audit trail, SOX/internal controls, regulator notice","Licensing for the performing entity"],
+"People":["Attrition risk and retention incentives","Knowledge transfer plan and owners","Labour law: notice, severance, consultation (WARN-type, works council)","Shift design and time-zone overlap"],
+"Technology & access":["Systems inventory and licences","VPN/SSO and access provisioning lead times","Data flows, transfers, dependent reports","Tool readiness (Power BI, RPA, ticketing)"],
+"Project readiness":["SOPs documented and version-controlled","Project maps, decision trees, exceptions","Escalation matrix and control points","Baseline KPIs from current state"],
+"Governance":["Steering committee","RAID log (Risks, Assumptions, Issues, Dependencies)","Change control","Go/no-go criteria at each gate"]};
+const CAL=[
+["SLA & service","SLA compliance %","(Within SLA ÷ Total completed) × 100",[["w","Within SLA",9420],["t","Total completed",9800]],v=>f(v.w/v.t*100)+"%  ·  Breach "+f(100-v.w/v.t*100)+"%"],
+["SLA & service","Average TAT","Σ(Completion − Start) ÷ Items",[["s","Total hours elapsed",7350],["n","Items",9800]],v=>f(v.s/v.n)+" hrs"],
+["SLA & service","Throughput","Items completed ÷ Period",[["n","Items completed",9800],["p","Days in period",22]],v=>f(v.n/v.p)+" per day"],
+["SLA & service","Backlog ageing","Open items by age bucket",[["a","0–1 day",120],["b","2–5 days",60],["c","5+ days",20]],v=>"5+ days = "+f(v.c/(v.a+v.b+v.c)*100)+"% of "+(v.a+v.b+v.c)+" open"],
+["FTE & capacity","Productive hours per FTE","(Days − Leave − Holidays − Training) × Hrs/day × Utilization %",[["d","Working days",260],["l","Leave",26],["h","Holidays",10],["t","Training",5],["hr","Hours/day",8],["u","Utilization %",80]],v=>f((v.d-v.l-v.h-v.t)*v.hr*v.u/100)+" hrs"],
+["FTE & capacity","Shrinkage %","(Leave + Training + Meetings + Absence) ÷ Paid hours × 100",[["x","Non-productive hours",3200],["p","Paid hours",20800]],v=>f(v.x/v.p*100)+"%"],
+["FTE & capacity","FTE required","(Annual volume × AHT hrs) ÷ Productive hrs per FTE",[["v","Annual volume",120000],["a","AHT (hrs)",0.25],["d","Working days",260],["l","Leave",26],["h","Holidays",10],["t","Training",5],["u","Utilization %",80],["b","Buffer % (attrition, ramp-up)",12]],v=>{let p=(v.d-v.l-v.h-v.t)*8*v.u/100,r=v.v*v.a/p;return f(r)+" FTE → plan "+Math.ceil(r)+"; with buffer "+Math.ceil(r*(1+v.b/100))}],
+["Quality","Accuracy %","(Error-free ÷ Checked) × 100",[["o","Error-free items",980],["c","Items checked",1000]],v=>f(v.o/v.c*100)+"%"],
+["Quality","First Pass Yield","Right first time ÷ Total",[["o","Right first time",9300],["t","Total items",9800]],v=>f(v.o/v.t*100)+"%"],
+["Quality","Rework %","Reworked ÷ Total",[["r","Reworked items",250],["t","Total items",9800]],v=>f(v.r/v.t*100)+"%"],
+["People","Attrition % (annualized)","(Leavers ÷ Avg headcount) × (12 ÷ months) × 100",[["l","Leavers",3],["h","Average headcount",40],["m","Months in period",6]],v=>f(v.l/v.h*(12/v.m)*100)+"%"],
+["People","Utilization %","Productive time ÷ Available time",[["p","Productive hrs",1120],["a","Available hrs",1400]],v=>f(v.p/v.a*100)+"%"],
+["Financial","Cost per transaction","Total operating cost ÷ Volume",[["c","Operating cost",450000],["v","Volume",120000]],v=>"₹/$ "+f(v.c/v.v)],
+["Financial","Savings %","(Onshore − Total offshore) ÷ Onshore × 100",[["o","Onshore cost",1000000],["f","Total offshore cost",640000]],v=>f((v.o-v.f)/v.o*100)+"%"],
+["Financial","Payback period","One-time cost ÷ Monthly net savings",[["c","One-time transition cost",900000],["s","Monthly net savings",60000]],v=>f(v.c/v.s)+" months"],
+["Transition","KT completion %","Modules signed off ÷ Total modules",[["s","Signed off",18],["t","Total modules",24]],v=>f(v.s/v.t*100)+"%"],
+["Transition","Parallel-run variance %","|New − Old| ÷ Old × 100",[["n","New output",9650],["o","Old output",9800]],v=>f(Math.abs(v.n-v.o)/v.o*100)+"%  "+(Math.abs(v.n-v.o)/v.o<.02?"✔ under 2% gate":"✖ above 2% gate")],
+["Transition","Defect leakage","Errors found after go-live ÷ Total processed",[["e","Post-go-live errors",12],["t","Total processed",9800]],v=>f(v.e/v.t*100,2)+"%"]];
+const f=(x,d=1)=>isFinite(x)?(+x).toLocaleString(undefined,{maximumFractionDigits:d}):"–";
+const KP=[["Service","SLA compliance %",95,1,2,96.2],["Service","Average TAT (hrs)",1,0,.2,.9],["Service","Backlog (items)",150,0,30,200],["Quality","Accuracy %",98,1,1,98.4],["Quality","First Pass Yield %",95,1,2,94],["Quality","Audit findings",0,0,1,0],["Productivity","Items per FTE (index vs baseline = 100)",100,1,5,97],["Productivity","Utilization %",80,1,5,82],["People","Attrition % (annual)",15,0,3,12],["People","Training completion %",100,1,5,92],["Financial","Cost per txn vs plan (index, plan = 100)",100,0,5,104],["Financial","Savings realized % of plan",100,1,5,88],["Transition","KT completion %",100,1,5,100],["Transition","Milestones on time %",100,1,10,85]];
+const RAGR=PH.map((p,i)=>[p[0].replace(/^\d\. /,""),p[6],["Programme mgr","Onshore SME","Offshore lead","Offshore lead","Offshore lead","Programme mgr","Programme mgr","Sponsor"][i],"","0","N","→","","","",""]);
+const RC=["R","A","C","I","A/R","–"],ROLES=["Sponsor","Programme mgr","Onshore SME","Offshore lead","HR","Legal/Compliance","IT","Quality/Risk"];
+const RA=[["Business case approval","ARCICCCC"],["KT sessions","IARC–––"],["SOP sign-off","ICARC–C"],["Data privacy sign-off","ICCC–|CC"],["Access provisioning","IA–C–CR–"],["Parallel run","IARR––CC"],["Go/no-go decision","ARCCCCCC"],["Attrition and retention","ICICA––"],["Hypercare","IACR––CC"]];
+const RM={A:"A",R:"R",C:"C",I:"I","–":"–"};
+const RACI=[["Business case approval",["A","R","C","I","C","C","C","C"]],["KT sessions",["I","A","R","C","I","–","–","–"]],["SOP sign-off",["I","C","A","R","–","C","–","C"]],["Data privacy sign-off",["I","C","C","C","–","A/R","C","C"]],["Access provisioning",["I","A","–","C","–","C","R","–"]],["Parallel run",["I","A","R","R","–","–","C","C"]],["Go/no-go decision",["A","R","C","C","C","C","C","C"]],["Attrition and retention",["I","C","I","C","A/R","–","–","–"]],["Hypercare",["I","A","C","R","–","–","C","C"]]];
+const TABS=["Overview","Phase Roadmap","Pre-Move Checklist","Formula Lab","KPI Dashboard","RAG Tracker","RACI","Practical Tips"];
+let ck={},rag=RAGR.map(r=>r.slice()),kp=KP.map(k=>k[5]),cur=0;
+function ragOf(a,t,hi,tol){let d=hi?a-t:t-a;return d>=0?"G":d>=-tol?"A":"R"}
+function pill(c){return `<span class="pill ${c}">${{G:"Green",A:"Amber",R:"Red",N:"Not started"}[c]}</span>`}
+function ckPct(){let a=Object.values(CK).flat().length,d=Object.values(ck).filter(Boolean).length;return Math.round(d/a*100)}
+const V={
+0(){let mn=PH.reduce((s,p)=>s+p[2],0),mx=PH.reduce((s,p)=>s+p[3],0);return `<div class="grid"><div class="card"><div class="mu">Phases</div><div class="big">8</div></div><div class="card"><div class="mu">Typical timeline</div><div class="big">${mn}–${mx} wks</div><div class="mu">Phases 1–7, then steady state</div></div><div class="card"><div class="mu">Pre-move checks done</div><div class="big">${ckPct()}%</div></div><div class="card"><div class="mu">RAG tracker</div><div>${["G","A","R","N"].map(c=>pill(c)+" "+rag.filter(r=>r[5]==c).length).join(" &nbsp;")}</div></div></div>
+<h2>What is migration?</h2><div class="grid"><div class="card"><h3>Offshoring</h3>Moving work to a lower-cost country such as India.</div><div class="card"><h3>Onshoring</h3>Moving work back to the home country or into a higher-cost region.</div><div class="card"><h3>Reshoring / backshoring</h3>Returning work that was previously moved away.</div></div>
+<div class="card" style="margin-top:12px"><h3>The real challenge</h3>The hard part is not the move itself. It is keeping <b>SLAs, quality and compliance</b> steady during the change. Examples: claims, MIS reporting, finance operations, IT support.</div>
+<h2>Timeline (weeks, max range)</h2><div class="tl">${PH.slice(0,7).map(p=>`<div style="flex:${p[3]}" title="${p[0]}">${p[0][0]}</div>`).join("")}</div><div class="mu">Numbers 1–7 map to the phases. Phase 8 is ongoing.</div>
+<h2>How to use</h2><ul><li>Walk the <b>Roadmap</b> phase by phase, tick the <b>Checklist</b>, test numbers in the <b>Formula Lab</b>.</li><li>Enter actuals in the <b>KPI Dashboard</b> (RAG is automatic), maintain the <b>RAG Tracker</b>, and click RACI cells to assign roles.</li></ul>`},
+1(){return `<div class="mu">Click a phase to expand.</div>`+PH.map((p,i)=>`<div class="card ph" role="button" tabindex="0" onclick="this.classList.toggle('open')" onkeydown="if(event.key=='Enter'||event.key==' '){event.preventDefault();this.classList.toggle('open')}" style="margin:8px 0"><h3>${p[0]} <span class="mu">· ${p[1]}${i<7?" weeks":""}</span></h3><div class="mu">Output: ${p[4]}</div><div class="body"><b>Key activities</b><ul>${p[5].map(a=>`<li>${a}</li>`).join("")}</ul><b>Exit gate:</b> ${p[6]}<br><b>Focus areas:</b> ${p[7]}</div></div>`).join("")+`<h2>Go-live gate criteria</h2><div class="card chk">${GATE.map((g,i)=>`<label><input type="checkbox" data-g="${i}" ${ck["g"+i]?"checked":""} onchange="ck['g'+${i}]=this.checked">${g}</label>`).join("")}</div>`},
+2(){return `<div class="card"><b>Progress: <span id="pp">${ckPct()}</span>%</b><div class="bar"><i id="pb" style="width:${ckPct()}%"></i></div></div><div class="grid" style="margin-top:12px">`+Object.entries(CK).map(([k,a])=>`<div class="card chk"><h3>${k}</h3>${a.map((x,i)=>`<label><input type="checkbox" ${ck[k+i]?"checked":""} onchange="ck['${k}${i}']=this.checked;pg()">${x}</label>`).join("")}</div>`).join("")+`</div>`},
+3(){let grp=[...new Set(CAL.map(c=>c[0]))];return grp.map(g=>`<h2>${g}</h2><div class="grid">`+CAL.map((c,i)=>c[0]!=g?"":`<div class="card"><h3>${c[1]}</h3><div class="f">${c[2]}</div>${c[3].map(x=>`<label>${x[1]}<input type="number" step="any" data-c="${i}" data-k="${x[0]}" value="${x[2]}" oninput="calc(${i})"></label>`).join("")}<div class="res" id="r${i}"></div></div>`).join("")+`</div>`).join("")+`<div class="mu" style="margin-top:10px">FTE example: 120,000 txns × 0.25 hr = 30,000 hrs; 219 days × 8 × 80% = 1,401.6 hrs per FTE; 21.4 → 22 FTE, about 24–25 with buffer.</div>`},
+4(){return `<div class="mu">Enter actuals. Green = meets target, Amber = within tolerance, Red = outside. Lower-is-better metrics reverse the logic.</div><div class="wrap"><table><tr><th>Category</th><th>KPI</th><th>Target</th><th>Rule</th><th>Tolerance</th><th>Actual</th><th>RAG</th></tr>${KP.map((k,i)=>`<tr><td>${k[0]}</td><td>${k[1]}</td><td>${k[2]}</td><td>${k[3]?"higher is better":"lower is better"}</td><td>±${k[4]}</td><td><input type="number" step="any" value="${kp[i]}" oninput="kp[${i}]=+this.value;ku()"></td><td id="k${i}"></td></tr>`).join("")}</table></div><h2>Summary</h2><div class="card" id="ks"></div>`},
+5(){return `<div class="mu">Thresholds: Green = meets target · Amber = within tolerance (e.g. 2 pts or 5%) · Red = outside tolerance or milestone missed without recovery plan.</div><div id="rs" style="margin:8px 0"></div><div class="wrap"><table><tr>${["Workstream","Milestone","Owner","Due date","% complete","RAG","Trend","Issue / risk","Mitigation","Next action","Last updated"].map(h=>`<th>${h}</th>`).join("")}</tr>${rag.map((r,i)=>`<tr>${r.map((v,j)=>j==5?`<td><select onchange="rag[${i}][5]=this.value;rs()">${["N","G","A","R"].map(o=>`<option value="${o}" ${o==v?"selected":""}>${{N:"Not started",G:"Green",A:"Amber",R:"Red"}[o]}</option>`).join("")}</select></td>`:j==6?`<td><select onchange="rag[${i}][6]=this.value">${["↑","→","↓"].map(o=>`<option ${o==v?"selected":""}>${o}</option>`).join("")}</select></td>`:`<td><input ${j==3||j==10?'type="date"':j==4?'type="number" min="0" max="100"':""} value="${v}" onchange="rag[${i}][${j}]=this.value"></td>`).join("")}</tr>`).join("")}</table></div><button class="b" onclick="rag.push(['','','','','0','N','→','','','','']);draw()">+ Add row</button>`},
+6(){return `<div class="mu">Click a cell to cycle R → A → C → I → A/R → –. Rule: exactly one A per row, at least one R.</div><div class="wrap"><table><tr><th>Activity</th>${ROLES.map(r=>`<th>${r}</th>`).join("")}<th>Check</th></tr>${RACI.map((r,i)=>`<tr><td>${r[0]}</td>${r[1].map((c,j)=>`<td class="rc" onclick="rc(${i},${j})">${c}</td>`).join("")}<td id="rv${i}"></td></tr>`).join("")}</table></div><div class="card" style="margin-top:12px"><b>R</b> Responsible (does the work) · <b>A</b> Accountable (one owner, signs off) · <b>C</b> Consulted · <b>I</b> Informed</div>`},
+7(){return `<div class="grid">${[["Build the tracker in Excel or Power BI","Give each KPI a data source so numbers refresh automatically. A strong reporting and automation project."],["Weekly steering review","Fixed one-page dashboard: SLA, quality, RAG, top 5 risks, decisions needed."],["Measure the baseline first","If you do not know today’s SLA and accuracy, you cannot prove the move worked."],["Plan for the dip","Expect a temporary drop in productivity and quality in the first 2–3 months. Set expectations early."],["Automate before you move","Rule-based, high-volume work is the best candidate; automate it first, then move the rest."],["Close the loop with gates","Never skip a go/no-go gate. Evidence of controls testing protects the programme in audits."]].map(t=>`<div class="card"><h3>${t[0]}</h3>${t[1]}</div>`).join("")}</div>`}};
+function pg(){$("#pp").textContent=ckPct();$("#pb").style.width=ckPct()+"%"}
+function calc(i){let v={};document.querySelectorAll(`[data-c="${i}"]`).forEach(e=>v[e.dataset.k]=+e.value);$("#r"+i).textContent=CAL[i][4](v)}
+function ku(){let c={G:0,A:0,R:0};KP.forEach((k,i)=>{let r=ragOf(kp[i],k[2],k[3],k[4]);c[r]++;$("#k"+i).innerHTML=pill(r)});$("#ks").innerHTML=["G","A","R"].map(x=>pill(x)+" "+c[x]).join(" &nbsp; ")+`<div class="mu">${c.R?"Red KPIs need a recovery plan before the next steering review.":"No red KPIs."}</div>`}
+function rs(){$("#rs").innerHTML=["G","A","R","N"].map(c=>pill(c)+" "+rag.filter(r=>r[5]==c).length).join(" &nbsp; ")}
+function rc(i,j){let a=RACI[i][1];a[j]=RC[(RC.indexOf(a[j])+1)%RC.length];draw()}
+function rv(){RACI.forEach((r,i)=>{let a=r[1].filter(x=>x=="A"||x=="A/R").length,rr=r[1].filter(x=>x=="R"||x=="A/R").length;$("#rv"+i).innerHTML=a==1&&rr>=1?'<span class="pill G">OK</span>':'<span class="pill R">'+(a!=1?a+" A":"No R")+'</span>'})}
+function draw(){document.querySelectorAll("#tabs button").forEach((b,i)=>{b.classList.toggle("on",i==cur);b.setAttribute("aria-selected",i==cur)});$("#m").innerHTML=`<section class="on">${V[cur]()}</section>`;if(cur==3)CAL.forEach((_,i)=>calc(i));if(cur==4)ku();if(cur==5)rs();if(cur==6)rv()}
+$("#tabs").innerHTML=TABS.map((t,i)=>`<button type="button" role="tab" data-i="${i}">${t}</button>`).join("");
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-i]");if(!b)return;cur=+b.dataset.i;try{history.replaceState(null,"","#"+(cur+1))}catch(x){}draw();window.scrollTo(0,0)});
+cur=Math.min(Math.max((parseInt(location.hash.slice(1))||1)-1,0),TABS.length-1);draw();
+</script></body></html>

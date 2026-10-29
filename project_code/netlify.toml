@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/process%20migration%20command%20center.html"
+  to = "/"
+  status = 301
